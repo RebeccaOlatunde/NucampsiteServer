@@ -1,36 +1,112 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const authenticate = require('../authenticate');
+const promotionRouter = express.Router();
 
-require('mongoose-currency').loadType(mongoose);
-const Currency = mongoose.Types.Currency;
+promotionRouter.route('/')
+.get((req, res, next) => {
+    Promotion.find()
+    .then(promotions => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotions);
+    })
+    .catch(err => next(err));
+})
 
-const promotionSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    image: {
-        type: String,
-        required: true
-    },
-    featured: {
-        type: Boolean,
-        default: false
-    },
-    cost:{
-        type: Currency,
-        required: true,
-        min:0
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    }, {
-    timestamps: true
+.post(authenticate.verifyUser, (req, res, next) => {
+    Promotion.create(req.body)
+    .then(promotion => {
+        console.log('Promotion Created', promotion);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotions);
+    })
+    .catch(err => next(err));
+})
+.put(authenticate.verifyUser, (req, res) => {
+    res.statusCode = 403;
+    res.end('PUT operation not supported on /promotion');
+})
+
+.delete(authenticate.verifyUser, (req, res, next) => {
+    Promotion.deleteMany()
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response);
+    })
+    .catch(err => next(err));
 });
 
-const Promotion = mongoose.model('Promotion', promotionSchema);
+promotionRouter.route('/:promotionId')
+.get((req, res,next) => {
+    Promotion.findById(req.params.promotionId)
+    .then(promotion => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotion);
+    })
+    .catch(err => next(err));
+})
+.post(authenticate.verifyUser, (req, res) => {
+    res.statusCode = 403;
+    res.end(`POST operation not supported on /promotions/${req.params.promotionId}`);
+})
 
-module.exports = Promotion;
+.put(authenticate.verifyUser, (req, res, next) => {
+    Promotion.findByIdAndUpdate(req.params.promotionId, {
+        $set: req.body
+    }, { new: true })
+    .then(promotion => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotion);
+    })
+    .catch(err => next(err));
+})
+
+.delete(authenticate.verifyUser, (req, res, next) => {
+    Promotion.findByIdAndDelete(req.params.promotionId)
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response);
+    })
+    .catch(err => next(err));
+});
+
+module.exports = promotionRouter;
+// require('mongoose-currency').loadType(mongoose);
+// const Currency = mongoose.Types.Currency;
+
+// const promotionSchema = new Schema({
+//     name: {
+//         type: String,
+//         required: true,
+//         unique: true
+//     },
+//     image: {
+//         type: String,
+//         required: true
+//     },
+//     featured: {
+//         type: Boolean,
+//         default: false
+//     },
+//     cost:{
+//         type: Currency,
+//         required: true,
+//         min:0
+//     },
+//     description: {
+//         type: String,
+//         required: true
+//     },
+//     }, {
+//     timestamps: true
+// });
+
+// const Promotion = mongoose.model('Promotion', promotionSchema);
+
+// module.exports = Promotion;
