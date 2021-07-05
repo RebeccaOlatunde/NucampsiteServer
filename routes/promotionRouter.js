@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const express = require('express');
+const Promotion = require('../models/promotion');
 const authenticate = require('../authenticate');
+
 const promotionRouter = express.Router();
 
 promotionRouter.route('/')
-.get((req, res, next) => {
+.get((req, res,next) => {
     Promotion.find()
     .then(promotions => {
         res.statusCode = 200;
@@ -13,24 +14,22 @@ promotionRouter.route('/')
     })
     .catch(err => next(err));
 })
-
-.post(authenticate.verifyUser, (req, res, next) => {
-    Promotion.create(req.body)
+.post(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+   Promotion.create(req.body)
     .then(promotion => {
-        console.log('Promotion Created', promotion);
+        console.log('Promotion Created ', promotion);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(promotions);
+        res.json(promotion);
     })
     .catch(err => next(err));
 })
-.put(authenticate.verifyUser, (req, res) => {
+.put( authenticate.verifyUser,(req, res) => {
     res.statusCode = 403;
-    res.end('PUT operation not supported on /promotion');
+    res.end('PUT operation not supported on /promotions');
 })
-
-.delete(authenticate.verifyUser, (req, res, next) => {
-    Promotion.deleteMany()
+.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+   Promotion.deleteMany()
     .then(response => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -49,12 +48,11 @@ promotionRouter.route('/:promotionId')
     })
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, (req, res) => {
+.post(authenticate.verifyUser,(req, res) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /promotions/${req.params.promotionId}`);
 })
-
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser,authenticate.verifyAdmin, (req, res,next) => {
     Promotion.findByIdAndUpdate(req.params.promotionId, {
         $set: req.body
     }, { new: true })
@@ -65,8 +63,7 @@ promotionRouter.route('/:promotionId')
     })
     .catch(err => next(err));
 })
-
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     Promotion.findByIdAndDelete(req.params.promotionId)
     .then(response => {
         res.statusCode = 200;
@@ -77,36 +74,3 @@ promotionRouter.route('/:promotionId')
 });
 
 module.exports = promotionRouter;
-// require('mongoose-currency').loadType(mongoose);
-// const Currency = mongoose.Types.Currency;
-
-// const promotionSchema = new Schema({
-//     name: {
-//         type: String,
-//         required: true,
-//         unique: true
-//     },
-//     image: {
-//         type: String,
-//         required: true
-//     },
-//     featured: {
-//         type: Boolean,
-//         default: false
-//     },
-//     cost:{
-//         type: Currency,
-//         required: true,
-//         min:0
-//     },
-//     description: {
-//         type: String,
-//         required: true
-//     },
-//     }, {
-//     timestamps: true
-// });
-
-// const Promotion = mongoose.model('Promotion', promotionSchema);
-
-// module.exports = Promotion;
