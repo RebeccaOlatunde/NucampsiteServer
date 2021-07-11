@@ -60,6 +60,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/campsites', campsiteRouter);
 app.use('/promotions', promotionRouter);
 app.use('/partners', partnerRouter);
+app.use('/favorites', favoriteRouter);
+
 app.use('/imageUpload', uploadRouter);
 
 
